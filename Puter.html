@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat App</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --chat-bg: white;
+            --text-color: black;
+            --sidebar-bg: #ddd;
+            --glow-color: rgba(0, 122, 255, 0.5);
+        }
+
+        .dark-mode {
+            --bg-color: #1e1e1e;
+            --chat-bg: #2c2c2c;
+            --text-color: white;
+            --sidebar-bg: #333;
+            --glow-color: rgba(0, 122, 255, 0.8);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+        }
+
+        #app-container {
+            display: flex;
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: var(--chat-bg);
+            border-radius: 12px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #app-container.glow {
+            box-shadow: 0px 0px 20px var(--glow-color);
+        }
+
+        #sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+        }
+
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--sidebar-bg);
+            border-radius: 12px 12px 0 0;
+        }
+
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #007aff;
+            color: white;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: #e5e5ea;
+            color: black;
+        }
+
+        #chat-input {
+            display: flex;
+            padding: 10px;
+        }
+
+        #chat-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        #chat-input button {
+            margin-left: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #007aff;
+            color: white;
+            cursor: pointer;
+        }
+
+        #toggle-sidebar, #toggle-dark-mode {
+            cursor: pointer;
+            padding: 5px 10px;
+            background: var(--chat-bg);
+            border-radius: 5px;
+        }
+    </style>
+
+    <!-- Include Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
+</head>
+
+<body>
+    <div id="app-container">
+        <div id="sidebar">
+            <h3>Chat History</h3>
+            <ul id="chat-history"></ul>
+        </div>
+        <div id="chat-container">
+            <div id="chat-header">
+                <span id="toggle-sidebar">☰</span>
+                <span><img src="WME.png" alt="Logo" style="height: 20px; vertical-align: middle;"> Moor A.I</span>
+                <span id="toggle-dark-mode">🌙</span>
+            </div>
+            <div id="messages"></div>
+            <div id="chat-input">
+                <input type="text" id="input-message" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messages = [];
+        const appContainer = document.getElementById("app-container");
+        const toggleSidebar = document.getElementById("toggle-sidebar");
+        const toggleDarkMode = document.getElementById("toggle-dark-mode");
+        
+        toggleSidebar.addEventListener("click", () => {
+            document.getElementById("sidebar").style.display = 
+                document.getElementById("sidebar").style.display === "none" || document.getElementById("sidebar").style.display === "" ? "flex" : "none";
+            appContainer.classList.toggle("glow");
+        });
+
+        toggleDarkMode.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            appContainer.classList.toggle("glow");
+        });
+
+        function addMessage(msg, isUser) {
+            const messagesDiv = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", isUser ? "user-message" : "ai-message");
+            messageDiv.textContent = msg;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("input-message");
+            const message = input.value.trim();
+            if (message) {
+                addMessage(message, true);
+                input.value = '';
+                messages.push({ content: message, role: 'user' });
+                puter.ai.chat(messages).then(response => {
+                    addMessage(response, false);
+                    messages.push(response.message);
+                }).catch(error => {
+                    console.error("AI response error:", error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
